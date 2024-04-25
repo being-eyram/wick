@@ -1,7 +1,11 @@
 package com.sunniercherries
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-fun main() {
+import com.github.ajalt.clikt.core.*
+import com.sunniercherries.commands.Lit
+import com.sunniercherries.commands.Snap
+import com.sunniercherries.commands.Wick
 
-}
+
+fun main(args: Array<String>) = Wick()
+    .subcommands(Lit(), Snap())
+    .main(args)
