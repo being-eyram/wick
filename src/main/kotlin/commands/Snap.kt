@@ -1,26 +1,33 @@
 package com.sunniercherries.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.terminal
-import com.sunniercherries.models.Blob
-import com.sunniercherries.models.Database
-import com.sunniercherries.models.WorkSpace
-import java.nio.file.Paths
-import kotlin.system.exitProcess
+import com.sunniercherries.models.*
+import kotlin.io.path.isRegularFile
+
 
 class Snap : CliktCommand(
     help = "Takes a shot of your project's current state."
 ) {
     override fun run() {
-        WorkSpace.apply {
-            getFilePaths()?.forEach {
-                val data = readFile(it)
-                val didSucceed = Database.store(Blob(data))
+        val entries = WorkSpace.getFilePaths()?.map { path ->
 
-                if (didSucceed) {
-                    echo("successfully snapped a file")
-                }
-            }
+            //val isRegularFile = path.toNioPath().isRegularFile()
+
+            val data = WorkSpace.readFile(path)
+            val blob = Blob(data)
+            Database.store(blob)
+            Entry(path, blob.oid)
+        }
+        val tree = entries?.let {
+            Tree(it)
+        }
+
+        val didSucceed = tree?.run {
+            Database.store(this)
+        }
+
+        if (didSucceed == true) {
+            echo("Successfully snapped a file")
         }
     }
 }

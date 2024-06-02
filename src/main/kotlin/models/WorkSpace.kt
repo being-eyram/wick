@@ -9,7 +9,7 @@ import java.nio.file.Paths
 
 
 object WorkSpace {
-    private val fileSystem = FileSystem.SYSTEM
+     val fileSystem = FileSystem.SYSTEM
     private val filesToIgnore = listOf(".", "..", ".git")
 
     val currentWorkingDir = File("").absoluteFile.toOkioPath()

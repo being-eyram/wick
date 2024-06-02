@@ -3,18 +3,10 @@ package com.sunniercherries.models
 import okio.Buffer
 import okio.ByteString
 
-data class Blob(val data: ByteString) {
-    val oid: String
-        get() = computeObjectId()
+data class Blob(val data: ByteString) : Snappable {
+    override val type: String
+        get() = "blob"
 
-    private val type: String = "blob"
-
-    val commitDescriptor: String
+    override val content: String
         get() = "$type ${data.size}\u0000${data.string(Charsets.US_ASCII)}"
-
-    private fun computeObjectId(): String {
-        return Buffer().writeUtf8(commitDescriptor)
-            .sha1()
-            .hex()
-    }
 }

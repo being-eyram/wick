@@ -10,9 +10,9 @@ import kotlin.io.path.pathString
 
 
 object Database {
-    fun store(blob: Blob) = writeObject(
-        id = blob.oid,
-        content = blob.commitDescriptor
+    fun store(snappable: Snappable) = writeObject(
+        id = snappable.oid,
+        content = snappable.content
     )
 
     private fun writeObject(
