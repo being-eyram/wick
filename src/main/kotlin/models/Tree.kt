@@ -18,11 +18,10 @@ data class Tree(
     @OptIn(ExperimentalStdlibApi::class)
     override val content: String
         get() = entries
-            .sortedBy { it.name }
-            .map { entry ->
+            .sortedBy { it.name }.joinToString("") { entry ->
                 buildString {
-                    append("${MODE} ${entry.name}\u0000")
+                    append("$MODE ${entry.name}\u0000")
                     append(entry.oid.hexToByteArray())
                 }
-            }.joinToString("")
+            }
 }

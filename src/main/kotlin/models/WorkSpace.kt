@@ -9,7 +9,7 @@ import java.nio.file.Paths
 
 
 object WorkSpace {
-     val fileSystem = FileSystem.SYSTEM
+    val fileSystem = FileSystem.SYSTEM
     private val filesToIgnore = listOf(".", "..", ".git")
 
     val currentWorkingDir = File("").absoluteFile.toOkioPath()
@@ -21,9 +21,9 @@ object WorkSpace {
             ?.filter { it.name !in filesToIgnore }
     }
 
-    fun readFile(path: Path): ByteString {
+    fun readFile(path: Path): String {
         return fileSystem.read(path) {
-            readByteString()
+            readUtf8()
         }
     }
 }

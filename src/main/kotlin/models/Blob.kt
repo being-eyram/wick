@@ -1,12 +1,12 @@
 package com.sunniercherries.models
 
-import okio.Buffer
 import okio.ByteString
 
-data class Blob(val data: ByteString) : Snappable {
+data class Blob(val data: String) : Snappable {
     override val type: String
         get() = "blob"
 
     override val content: String
-        get() = "$type ${data.size}\u0000${data.string(Charsets.US_ASCII)}"
+        get() = "$type ${data.length}\u0000${data}"
+
 }

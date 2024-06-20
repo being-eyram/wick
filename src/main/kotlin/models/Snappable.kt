@@ -12,7 +12,7 @@ interface Snappable {
     val content: String
 
     private fun computeObjectId(): String {
-        return Buffer().writeUtf8(content)
+        return  Buffer().writeUtf8(content)
             .sha1()
             .hex()
     }

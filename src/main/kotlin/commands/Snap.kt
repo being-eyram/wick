@@ -12,12 +12,12 @@ class Snap : CliktCommand(
         val entries = WorkSpace.getFilePaths()?.map { path ->
 
             //val isRegularFile = path.toNioPath().isRegularFile()
-
             val data = WorkSpace.readFile(path)
             val blob = Blob(data)
             Database.store(blob)
             Entry(path, blob.oid)
         }
+
         val tree = entries?.let {
             Tree(it)
         }
