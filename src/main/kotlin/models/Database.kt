@@ -11,19 +11,19 @@ import kotlin.io.path.pathString
 
 object Database {
     fun store(snappable: Snappable) = writeObject(
-        id = snappable.oid,
-        content = snappable.content
+        id = snappable.hash,
+        content = snappable.payload
     )
 
     private fun writeObject(
-        id: String, content: String,
+        id: String, content: ByteArray,
     ): Boolean {
         val objectDir = "${WorkSpace.objectsPath.pathString}/${id.substring(0, 2)}".toPath()
         val tempFile = File(objectDir.toString(), generateTempName())
         val objectFile = File(objectDir.toString(), id.substring(2))
 
         val result = runCatching {
-            val compressedContent = compress(content.toByteArray())
+            val compressedContent = compress(content)
 
             FileSystem.SYSTEM.apply {
                 createDirectories(objectDir)

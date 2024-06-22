@@ -1,8 +1,6 @@
 package com.sunniercherries.models
 
-import okio.Path
-
 data class Entry(
-    val name: Path,
-    val oid: String,
+    val name: String,
+    val hash: String,
 )

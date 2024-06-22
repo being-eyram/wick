@@ -4,17 +4,16 @@ import okio.Buffer
 
 interface Snappable {
 
-    val oid: String
-        get() = computeObjectId()
+    val hash: String
+        get() = computeHash()
 
     val type: String
 
-    val content: String
+    val payload: ByteArray
 
-    private fun computeObjectId(): String {
-        return  Buffer().writeUtf8(content)
+    private fun computeHash(): String {
+        return Buffer().write(payload)
             .sha1()
             .hex()
     }
-
 }

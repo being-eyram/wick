@@ -2,7 +2,6 @@ package com.sunniercherries.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.sunniercherries.models.*
-import kotlin.io.path.isRegularFile
 
 
 class Snap : CliktCommand(
@@ -15,7 +14,7 @@ class Snap : CliktCommand(
             val data = WorkSpace.readFile(path)
             val blob = Blob(data)
             Database.store(blob)
-            Entry(path, blob.oid)
+            Entry(path.name, blob.hash)
         }
 
         val tree = entries?.let {
