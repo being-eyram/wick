@@ -14,7 +14,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     implementation("com.github.ajalt.clikt:clikt:4.2.2")
     implementation("com.squareup.okio:okio:3.9.0")
-
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 }
 
 tasks.test {

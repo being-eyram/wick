@@ -34,7 +34,6 @@ data class Tree(
             val metadataBuffer = Buffer()
                 .write("$type ${payloadBuffer.size}\u0000".encode())
 
-
             return metadataBuffer
                 .write(payloadBuffer.readByteString())
                 .readByteArray()
