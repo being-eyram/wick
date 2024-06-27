@@ -18,22 +18,20 @@ object Database {
     private fun writeObject(
         id: String, content: ByteArray,
     ): Boolean {
-        val objectDir = "${WorkSpace.objectsPath.pathString}/${id.substring(0, 2)}".toPath()
-        val tempFile = File(objectDir.toString(), generateTempName())
-        val objectFile = File(objectDir.toString(), id.substring(2))
+        val objectDir = WorkSpace.OBJECTS_PATH.resolve(id.substring(0, 2))
+        val tempFile = objectDir.resolve(generateTempName())
+        val objectFile = objectDir.resolve(id.substring(2))
 
         val result = runCatching {
             val compressedContent = compress(content)
 
             FileSystem.SYSTEM.apply {
                 createDirectories(objectDir)
-                tempFile.createNewFile()
-                objectFile.createNewFile()
 
-                write(tempFile.toOkioPath()) {
+                write(tempFile) {
                     write(compressedContent)
                 }
-                atomicMove(tempFile.toOkioPath(), objectFile.toOkioPath())
+                atomicMove(tempFile, objectFile)
             }
         }
 
