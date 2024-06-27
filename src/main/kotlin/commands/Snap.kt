@@ -3,6 +3,9 @@ package com.sunniercherries.commands
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.option
 import com.sunniercherries.models.*
+import com.sunniercherries.models.WorkSpace.HEAD_FILE_PATH
+import com.sunniercherries.readFile
+import com.sunniercherries.writeFile
 
 
 class Snap : CliktCommand(
@@ -15,7 +18,7 @@ class Snap : CliktCommand(
         val entries = WorkSpace.getFilePaths()?.map { path ->
 
             //val isRegularFile = path.toNioPath().isRegularFile()
-            val data = WorkSpace.readFile(path)
+            val data = readFile(path)
             val blob = Blob(data)
             Database.store(blob)
             Entry(path.name, blob.hash)
@@ -31,8 +34,6 @@ class Snap : CliktCommand(
         val commit = Commit(tree, author, message ?: "")
         Database.store(commit)
 
-        WorkSpace.run {
-            writeFile(HEAD_FILE, commit.hash)
-        }
+        writeFile(HEAD_FILE_PATH, commit.hash)
     }
 }
