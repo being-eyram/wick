@@ -19,6 +19,6 @@ data class Author(
         }
 
     override fun toString(): String {
-        return "$name, $email, $time"
+        return "$name <$email> $time"
     }
 }
