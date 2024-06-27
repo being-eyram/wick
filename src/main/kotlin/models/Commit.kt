@@ -19,7 +19,7 @@ data class Commit(
                 appendLine("author $author")
                 appendLine("committer $author")
                 appendLine()
-                appendLine("message $message")
+                appendLine(message)
             }
 
             val metadata = "commit ${body.length}\u0000"
