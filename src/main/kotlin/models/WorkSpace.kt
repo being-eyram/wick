@@ -1,6 +1,5 @@
 package com.sunniercherries.models
 
-import okio.ByteString
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toOkioPath
@@ -9,21 +8,29 @@ import java.nio.file.Paths
 
 
 object WorkSpace {
-    val fileSystem = FileSystem.SYSTEM
+    val FILE_SYSTEM = FileSystem.SYSTEM
+
+    val CURRENT_WORKING_DIR = File("").absoluteFile.toOkioPath()
+    val GIT_PATH = CURRENT_WORKING_DIR.resolve(".git")
+    val OBJECTS_PATH = GIT_PATH.resolve("objects")
+    val HEAD_FILE = GIT_PATH.resolve("HEAD")
+
     private val filesToIgnore = listOf(".", "..", ".git")
 
-    val currentWorkingDir = File("").absoluteFile.toOkioPath()
-    val gitPath = Paths.get(currentWorkingDir.toString(), ".git")
-    val objectsPath = Paths.get(gitPath.toString(), "objects")
-
     fun getFilePaths(): List<Path>? {
-        return fileSystem.listOrNull(currentWorkingDir)
+        return FILE_SYSTEM.listOrNull(CURRENT_WORKING_DIR)
             ?.filter { it.name !in filesToIgnore }
     }
 
     fun readFile(path: Path): String {
-        return fileSystem.read(path) {
+        return FILE_SYSTEM.read(path) {
             readUtf8()
+        }
+    }
+
+    fun writeFile(path: Path, data: String) {
+        FILE_SYSTEM.write(path) {
+            writeUtf8(data)
         }
     }
 }
