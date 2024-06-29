@@ -6,6 +6,7 @@ import com.sunniercherries.models.*
 import com.sunniercherries.models.WorkSpace.HEAD_FILE_PATH
 import com.sunniercherries.readFile
 import com.sunniercherries.writeFile
+import kotlin.io.path.isExecutable
 
 
 class Snap : CliktCommand(
@@ -17,11 +18,13 @@ class Snap : CliktCommand(
     override fun run() {
         val entries = WorkSpace.getFilePaths()?.map { path ->
 
-            //val isRegularFile = path.toNioPath().isRegularFile()
+            val isExecutable = path.toNioPath().isExecutable()
+
             val data = readFile(path) ?: return
             val blob = Blob(data)
             Database.store(blob)
-            Entry(path.name, blob.hash)
+
+            Entry(path.name, blob.hash, isExecutable)
         }
 
         if (entries == null) return
