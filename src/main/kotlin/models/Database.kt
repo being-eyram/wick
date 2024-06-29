@@ -1,12 +1,8 @@
 package com.sunniercherries.models
 
-import okio.*
-import okio.Path.Companion.toOkioPath
-import okio.Path.Companion.toPath
+import com.sunniercherries.FILE_SYSTEM
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.util.zip.Deflater
-import kotlin.io.path.pathString
 
 
 object Database {
@@ -19,19 +15,22 @@ object Database {
         id: String, content: ByteArray,
     ): Boolean {
         val objectDir = WorkSpace.OBJECTS_PATH.resolve(id.substring(0, 2))
+        val objectFilePath = objectDir.resolve(id.substring(2))
+
+        if (FILE_SYSTEM.exists(objectFilePath)) return true;
+
         val tempFile = objectDir.resolve(generateTempName())
-        val objectFile = objectDir.resolve(id.substring(2))
 
         val result = runCatching {
             val compressedContent = compress(content)
 
-            FileSystem.SYSTEM.apply {
+            FILE_SYSTEM.apply {
                 createDirectories(objectDir)
 
                 write(tempFile) {
                     write(compressedContent)
                 }
-                atomicMove(tempFile, objectFile)
+                atomicMove(tempFile, objectFilePath)
             }
         }
 
