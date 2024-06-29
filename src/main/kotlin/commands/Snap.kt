@@ -34,11 +34,9 @@ class Snap : CliktCommand(
 
         val author = Author(name = "Eyram Hlorgbe", email = "eyram.hlorgbe@hubtel.com")
         val parent = WorkSpace.readHead()
-
         val commit = Commit(parent, tree.hash, author, message ?: "")
+
         Database.store(commit)
         WorkSpace.updateHead(commit.hash)
-
-        writeFile(HEAD_FILE_PATH, commit.hash)
     }
 }
