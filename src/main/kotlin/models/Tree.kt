@@ -12,10 +12,6 @@ data class Tree(
         computeHash()
     }
 
-    companion object {
-        val MODE = "100644"
-    }
-
     override val type: String
         get() = "tree"
 
@@ -26,7 +22,7 @@ data class Tree(
                 val sortedEntries = entries.sortedBy { it.name }
 
                 sortedEntries.forEach { entry ->
-                    val entryMetadata = "$MODE ${entry.name}\u0000".encode()
+                    val entryMetadata = "${entry.mode} ${entry.name}\u0000".encode()
                     val entryHash = entry.hash.decodeHex()
 
                     write(entryMetadata)
