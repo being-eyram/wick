@@ -22,7 +22,6 @@ object WorkSpace {
             ?.filter { it.name !in filesToIgnore }
     }
 
-
     fun readHead() = readFile(HEAD_FILE_PATH)
 
     fun updateHead(commitHash: String) {
