@@ -8,6 +8,10 @@ data class Tree(
     val entries: List<Entry>
 ) : Snappable {
 
+    override val hash: String by lazy {
+        computeHash()
+    }
+
     companion object {
         val MODE = "100644"
     }

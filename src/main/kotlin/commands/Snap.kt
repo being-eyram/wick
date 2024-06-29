@@ -18,7 +18,7 @@ class Snap : CliktCommand(
         val entries = WorkSpace.getFilePaths()?.map { path ->
 
             //val isRegularFile = path.toNioPath().isRegularFile()
-            val data = readFile(path)
+            val data = readFile(path) ?: return
             val blob = Blob(data)
             Database.store(blob)
             Entry(path.name, blob.hash)
@@ -30,9 +30,11 @@ class Snap : CliktCommand(
         Database.store(tree)
 
         val author = Author(name = "Eyram Hlorgbe", email = "eyram.hlorgbe@hubtel.com")
+        val parent = WorkSpace.readHead()
 
-        val commit = Commit(tree, author, message ?: "")
+        val commit = Commit(parent, tree.hash, author, message ?: "")
         Database.store(commit)
+        WorkSpace.updateHead(commit.hash)
 
         writeFile(HEAD_FILE_PATH, commit.hash)
     }

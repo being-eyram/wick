@@ -3,11 +3,15 @@ package com.sunniercherries.models
 import okio.Buffer
 
 data class Commit(
-    val parent: String,
+    val parent: String?,
     val tree: String,
     val author: Author,
     val message: String,
 ) : Snappable {
+
+    override val hash: String by lazy {
+        computeHash()
+    }
 
     override val type: String
         get() = "commit"
@@ -17,7 +21,7 @@ data class Commit(
 
             val body = buildString {
                 appendLine("tree $tree")
-                if (parent.isNotBlank()) appendLine("parent $parent")
+                if (!parent.isNullOrBlank()) appendLine("parent $parent")
                 appendLine("author $author")
                 appendLine("committer $author")
                 appendLine()
