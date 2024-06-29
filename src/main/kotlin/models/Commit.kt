@@ -3,7 +3,8 @@ package com.sunniercherries.models
 import okio.Buffer
 
 data class Commit(
-    val tree: Tree,
+    val parent: String,
+    val tree: String,
     val author: Author,
     val message: String,
 ) : Snappable {
@@ -15,7 +16,8 @@ data class Commit(
         get() {
 
             val body = buildString {
-                appendLine("tree ${tree.hash}")
+                appendLine("tree $tree")
+                if (parent.isNotBlank()) appendLine("parent $parent")
                 appendLine("author $author")
                 appendLine("committer $author")
                 appendLine()
@@ -25,7 +27,7 @@ data class Commit(
             val metadata = "commit ${body.length}\u0000"
 
             return Buffer()
-                .writeUtf8(metadata )
+                .writeUtf8(metadata)
                 .writeUtf8(body)
                 .readByteArray()
         }
