@@ -1,6 +1,8 @@
 package com.sunniercherries.models
 
 import com.sunniercherries.FILE_SYSTEM
+import com.sunniercherries.readFile
+import com.sunniercherries.writeFile
 import okio.Path
 import okio.Path.Companion.toOkioPath
 import java.io.File
@@ -18,5 +20,12 @@ object WorkSpace {
     fun getFilePaths(): List<Path>? {
         return FILE_SYSTEM.listOrNull(CURRENT_WORKING_DIR)
             ?.filter { it.name !in filesToIgnore }
+    }
+
+
+    fun readHead() = readFile(HEAD_FILE_PATH)
+
+    fun updateHead(commitHash: String) {
+        writeFile(HEAD_FILE_PATH, commitHash)
     }
 }
