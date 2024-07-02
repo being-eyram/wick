@@ -1,6 +1,9 @@
 package com.sunniercherries.models
 
 import com.sunniercherries.FILE_SYSTEM
+import com.sunniercherries.OBJECTS_PATH
+import com.sunniercherries.writeFile
+import okio.Path.Companion.toOkioPath
 import java.io.ByteArrayOutputStream
 import java.util.zip.Deflater
 
@@ -14,8 +17,8 @@ object Database {
     private fun writeObject(
         id: String, content: ByteArray,
     ): Boolean {
-        val objectDir = WorkSpace.OBJECTS_PATH.resolve(id.substring(0, 2))
-        val objectFilePath = objectDir.resolve(id.substring(2))
+        val objectDir = OBJECTS_PATH.resolve(id.substring(0, 2))
+        val objectFilePath = objectDir.resolve(id.substring(2)).toOkioPath()
 
         if (FILE_SYSTEM.exists(objectFilePath)) return true;
 
@@ -24,19 +27,13 @@ object Database {
         val result = runCatching {
             val compressedContent = compress(content)
 
-            FILE_SYSTEM.apply {
-                createDirectories(objectDir)
-
-                write(tempFile) {
-                    write(compressedContent)
-                }
-                atomicMove(tempFile, objectFilePath)
-            }
+            FILE_SYSTEM.createDirectories(objectDir.toOkioPath())
+            writeFile(tempFile, compressedContent)
+            FILE_SYSTEM.atomicMove(tempFile.toOkioPath(), objectFilePath)
         }
 
         return result.isSuccess
     }
-
 
     private fun generateTempName(): String {
         val alphaNumericChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
@@ -64,5 +61,4 @@ object Database {
 
         return outputStream.toByteArray()
     }
-
 }
