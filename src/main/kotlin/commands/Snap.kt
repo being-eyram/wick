@@ -20,12 +20,10 @@ class Snap : CliktCommand(
         fun processDirectory(root: Path): Tree {
             val entries = getFilePaths(root).map { path ->
                 if (path.isDirectory()) {
-                    // Recursively process subdirectory
                     val subtree = processDirectory(path)
                     Database.store(subtree)
-                    Entry(path.name, subtree.hash, isExecutable = false)
+                    Entry(path.name, subtree.hash, isDirectory = true)
                 } else {
-                    // Process file
                     val isExecutable = path.isExecutable()
                     val data = readFile(path) ?: return@map null
                     val blob = Blob(data)

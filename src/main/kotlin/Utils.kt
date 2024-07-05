@@ -36,7 +36,9 @@ fun writeFile(path: Path, data: ByteArray) {
     }
 }
 
-fun getFilePaths(root: Path) = root.listDirectoryEntries()
+fun getFilePaths(root: Path) = root.listDirectoryEntries().filter {
+    !it.pathString.startsWith(".")
+}
 
 fun readHead() = readFile(HEAD_FILE_PATH)
 
