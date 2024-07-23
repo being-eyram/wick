@@ -10,15 +10,23 @@ import java.io.File
 
 object WorkSpace {
 
-    val CURRENT_WORKING_DIR = File("").absoluteFile.toOkioPath()
-    val GIT_PATH = CURRENT_WORKING_DIR.resolve(".git")
-    val OBJECTS_PATH = GIT_PATH.resolve("objects")
-    val HEAD_FILE_PATH = GIT_PATH.resolve("HEAD")
+    val CURRENT_WORKING_DIR
+        get() = File("").absoluteFile.toOkioPath()
+
+    val GIT_PATH
+        get() = CURRENT_WORKING_DIR.resolve(".git")
+
+    val OBJECTS_PATH
+        get() = GIT_PATH.resolve("objects")
+
+    val HEAD_FILE_PATH
+        get() = GIT_PATH.resolve("HEAD")
 
     private val filesToIgnore = listOf(".", "..", ".git")
 
     fun getFilePaths(): List<Path>? {
-        return FILE_SYSTEM.listOrNull(CURRENT_WORKING_DIR)
+        return FILE_SYSTEM
+            .listOrNull(CURRENT_WORKING_DIR)
             ?.filter { it.name !in filesToIgnore }
     }
 
