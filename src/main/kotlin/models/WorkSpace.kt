@@ -22,6 +22,9 @@ object WorkSpace {
     val HEAD_FILE_PATH
         get() = GIT_PATH.resolve("HEAD")
 
+    val INDEX_FILE_PATH
+        get() = GIT_PATH.resolve("index")
+
     private val filesToIgnore = listOf(".", "..", ".git")
 
     fun getFilePaths(): List<Path>? {
