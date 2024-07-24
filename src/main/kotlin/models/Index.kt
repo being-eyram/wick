@@ -1,6 +1,7 @@
 package com.sunniercherries.models
 
 import com.sunniercherries.FILE_SYSTEM
+import com.sunniercherries.INDEX_FILE_PATH
 import okio.Buffer
 import okio.ByteString
 import java.nio.file.Path
@@ -98,7 +99,7 @@ class Index {
             }
         }
 
-        FILE_SYSTEM.write(WorkSpace.INDEX_FILE_PATH, mustCreate = true) {
+        FILE_SYSTEM.write(INDEX_FILE_PATH, mustCreate = true) {
             write(entriesBuffer.readByteArray())
             write(entriesBuffer.sha1())
         }

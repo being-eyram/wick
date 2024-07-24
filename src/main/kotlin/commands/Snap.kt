@@ -2,11 +2,13 @@ package com.sunniercherries.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.option
+import com.sunniercherries.*
 import com.sunniercherries.models.*
-import com.sunniercherries.models.WorkSpace.HEAD_FILE_PATH
-import com.sunniercherries.readFile
-import com.sunniercherries.writeFile
+import okio.Path
+
+import kotlin.io.path.isDirectory
 import kotlin.io.path.isExecutable
+
 
 
 class Snap : CliktCommand(
@@ -14,29 +16,36 @@ class Snap : CliktCommand(
 ) {
 
     private val message by option(names = arrayOf("--message", "-m"), help = "yelp!")
-
     override fun run() {
-        val entries = WorkSpace.getFilePaths()?.map { path ->
+        fun processDirectory(root: Path): Tree {
+            val entries = getFilePaths(root).map { path ->
+                val ktPath = path.toNioPath()
+                if (ktPath.isDirectory()) {
+                    val subtree = processDirectory(path)
+                    Database.store(subtree)
+                    Entry(path.name, subtree.hash, isDirectory = true)
+                } else {
+                    val isExecutable = ktPath.isExecutable()
+                    val data = readFile(path) ?: return@map null
+                    val blob = Blob(data)
+                    Database.store(blob)
+                    Entry(path.name, blob.hash, isExecutable)
+                }
+            }.filterNotNull() // Remove any null entries
 
-            val isExecutable = path.toNioPath().isExecutable()
-
-            val data = readFile(path) ?: return
-            val blob = Blob(data)
-            Database.store(blob)
-
-            Entry(path.name, blob.hash, isExecutable)
+            val tree = Tree(entries)
+            return tree
         }
 
-        if (entries == null) return
-
-        val tree = Tree(entries)
-        Database.store(tree)
+        val rootTree = processDirectory(CURRENT_WORKING_DIR)
+        Database.store(rootTree)
 
         val author = Author(name = "Eyram Hlorgbe", email = "eyram.hlorgbe@hubtel.com")
-        val parent = WorkSpace.readHead()
-        val commit = Commit(parent, tree.hash, author, message ?: "")
+        val parent = readHead()
+        val commit = Commit(parent, rootTree.hash, author, message ?: "")
 
         Database.store(commit)
-        WorkSpace.updateHead(commit.hash)
+        updateHead(commit.hash)
     }
+
 }
