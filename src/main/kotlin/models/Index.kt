@@ -6,6 +6,7 @@ import okio.Buffer
 import okio.ByteString
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.attribute.FileTime
 import kotlin.io.path.isExecutable
 import kotlin.io.path.pathString
 import kotlin.io.path.getAttribute
@@ -36,43 +37,47 @@ class Index {
         private val flags: Int
             get() = minOf(pathString.toByteArray().size, MAX_PATH_SIZE)
 
-        private val cTimeMillis: Int
-            get() = attributes.creationTime().toMillis().toInt()
-
-        private val mTimeMillis: Int
-            get() = attributes.lastModifiedTime().toMillis().toInt()
-
         private val size: Long
             get() = attributes.size()
 
-        private val cTimeNano: Int = 0
-        private val mTimeNano: Int = 0
+        private val cTime = (path.getAttribute("unix:ctime") as FileTime).toInstant()
+        private val cTimeSec: Int = cTime.epochSecond.toInt()
+        private val cTimeNano: Int = cTime.nano
 
-        private val dev: Int = path.getAttribute("unix:dev") as Int
-        private val ino: Long = path.getAttribute("unix:ino") as Long
-        private val uid: Int = path.getAttribute("unix:uid") as Int
-        private val gid: Int = path.getAttribute("unix:gid") as Int
+        private val mTimeSec: Int
+            get() = attributes.lastModifiedTime().toInstant().epochSecond.toInt()
+        private val mTimeNano: Int = attributes.lastModifiedTime().toInstant().nano
 
+        private val dev = path.getAttribute("unix:dev") as Long
+        private val ino = path.getAttribute("unix:ino") as Long
+        private val uid = path.getAttribute("unix:uid") as Int
+        private val gid = path.getAttribute("unix:gid") as Int
 
         fun encode(): ByteArray {
             return Buffer().apply {
-                writeInt(cTimeMillis)  // 32-bit seconds, big-endian
+                writeInt(cTimeSec) // 32-bit seconds, big-endian
                 writeInt(cTimeNano)  // 32-bit nanoseconds, big-endian
 
-                writeInt(mTimeMillis)  // 32-bit seconds, big-endian
+                writeInt(mTimeSec)  // 32-bit seconds, big-endian
                 writeInt(mTimeNano)  // 32-bit nanoseconds, big-endian
 
-                writeInt(dev)
-                writeLong(ino)
-                writeInt(mode)
-                writeInt(uid)
-                writeInt(gid)
-                writeInt(size.toInt())  // Git uses 32-bit for file size in the index
+                writeInt(dev.toInt()) //32-bit
+                writeInt(ino.toInt()) //32-bit
+                writeInt(mode)//32-bit
+                writeInt(uid)//32-bit
+                writeInt(gid)//32-bit
+                writeInt(this@Entry.size.toInt())  // Git uses 32-bit for file size in the index
                 write(oid)
-                writeShort(flags)
-                writeUtf8(pathString)
+                writeShort(flags) // 16-bit
+                writeUtf8(pathString)//pathname
 
-
+                // Add padding to ensure total bytes are a multiple of 8
+                val currentSize = size
+                //TODO: TRY TO UNDERSTAND THIS
+                val paddingNeeded = (8 - (currentSize % 8)) % 8
+                repeat(paddingNeeded.toInt()) {
+                    writeByte(0)
+                }
             }.readByteArray()
         }
     }
@@ -87,7 +92,7 @@ class Index {
     }
 
     fun writeToIndexFile() {
-        val entriesBuffer = Buffer().apply {
+        val entriesBuffer = Buffer().run {
             //write header
             writeUtf8(SIGNATURE)
             writeInt(SUPPORTED_VERSION)
@@ -97,10 +102,16 @@ class Index {
             entries.forEach { entry ->
                 write(entry.encode())
             }
+
+            // GOTCHA READING FROM THE BUFFER CLEARS IT. THAT MEANS WHEN WE USE APPLY SCOPE FUNCTION AND
+            // READ BYTE_ARRAY METHOD THE BUFFER IS CLEARED BEFORE SHA-1 HASH IS CALCULATED PRODUCING INCORRECT HASHES
+            // https://github.com/square/okio/issues/95#issuecomment-67988511
+            readByteString()
         }
 
-        FILE_SYSTEM.write(INDEX_FILE_PATH, mustCreate = true) {
-            write(entriesBuffer.readByteArray())
+
+        FILE_SYSTEM.write(INDEX_FILE_PATH) {
+            write(entriesBuffer)
             write(entriesBuffer.sha1())
         }
     }
