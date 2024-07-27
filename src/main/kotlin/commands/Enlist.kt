@@ -2,9 +2,7 @@ package com.sunniercherries.commands
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.ajalt.clikt.parameters.arguments.check
 import com.github.ajalt.clikt.parameters.arguments.multiple
-import com.github.ajalt.clikt.parameters.arguments.validate
 import com.github.ajalt.clikt.parameters.types.path
 import com.sunniercherries.*
 import com.sunniercherries.models.*
@@ -12,7 +10,6 @@ import okio.ByteString.Companion.decodeHex
 import okio.Path
 import okio.Path.Companion.toOkioPath
 import java.nio.file.attribute.BasicFileAttributes
-import kotlin.io.path.isRegularFile
 import kotlin.io.path.pathString
 import kotlin.io.path.readAttributes
 
@@ -28,20 +25,20 @@ class Enlist : CliktCommand(
     override fun run() {
         val index = Index()
 
-        destination.sortedBy { it.pathString }
-            .map { it.toOkioPath() }
-
-            .forEach { path ->
-                when {
-                    path.isRegularFile -> writeToIndex(path, index)
-                    else -> path.listFiles().forEach {
-                        writeToIndex(it, index)
-                    }
+        destination.forEach { path ->
+            val okioPath = path.toOkioPath()
+            when {
+                okioPath.isRegularFile -> addToIndex(okioPath, index)
+                else -> okioPath.listFiles().forEach {
+                    addToIndex(it, index)
                 }
             }
+        }
+
+        index.writeToIndexFile()
     }
 
-    private fun writeToIndex(file: Path, index: Index): Boolean {
+    private fun addToIndex(file: Path, index: Index): Boolean {
         val fileAttributes = file.toNioPath().readAttributes<BasicFileAttributes>()
         val data = readFile(file) ?: return true
 
@@ -49,7 +46,6 @@ class Enlist : CliktCommand(
         Database.store(blob)
 
         index.add(file.toNioPath(), blob.hash.decodeHex(), fileAttributes)
-        index.writeToIndexFile()
         return false
     }
 }

@@ -99,9 +99,9 @@ class Index {
             writeInt(entries.size)
 
             //write body
-            entries.forEach { entry ->
-                write(entry.encode())
-            }
+            entries
+                .sortedBy { entry -> entry.path.pathString }
+                .forEach { entry -> write(entry.encode()) }
 
             // GOTCHA READING FROM THE BUFFER CLEARS IT. THAT MEANS WHEN WE USE APPLY SCOPE FUNCTION AND
             // READ BYTE_ARRAY METHOD THE BUFFER IS CLEARED BEFORE SHA-1 HASH IS CALCULATED PRODUCING INCORRECT HASHES
