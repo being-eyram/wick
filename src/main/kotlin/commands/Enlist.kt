@@ -9,8 +9,10 @@ import com.github.ajalt.clikt.parameters.types.path
 import com.sunniercherries.*
 import com.sunniercherries.models.*
 import okio.ByteString.Companion.decodeHex
+import okio.Path
 import okio.Path.Companion.toOkioPath
 import java.nio.file.attribute.BasicFileAttributes
+import kotlin.io.path.isRegularFile
 import kotlin.io.path.pathString
 import kotlin.io.path.readAttributes
 
@@ -27,15 +29,27 @@ class Enlist : CliktCommand(
         val index = Index()
 
         destination.sortedBy { it.pathString }
+            .map { it.toOkioPath() }
+
             .forEach { path ->
-                val fileAttributes = path.readAttributes<BasicFileAttributes>()
-                val data = readFile(path.toOkioPath()) ?: return
-
-                val blob = Blob(data)
-                Database.store(blob)
-
-                index.add(path, blob.hash.decodeHex(), fileAttributes)
-                index.writeToIndexFile()
+                when {
+                    path.isRegularFile -> writeToIndex(path, index)
+                    else -> path.listFiles().forEach {
+                        writeToIndex(it, index)
+                    }
+                }
             }
+    }
+
+    private fun writeToIndex(file: Path, index: Index): Boolean {
+        val fileAttributes = file.toNioPath().readAttributes<BasicFileAttributes>()
+        val data = readFile(file) ?: return true
+
+        val blob = Blob(data)
+        Database.store(blob)
+
+        index.add(file.toNioPath(), blob.hash.decodeHex(), fileAttributes)
+        index.writeToIndexFile()
+        return false
     }
 }

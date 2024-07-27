@@ -10,7 +10,6 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.isExecutable
 
 
-
 class Snap : CliktCommand(
     help = "Takes a shot of your project's current state."
 ) {
@@ -19,17 +18,15 @@ class Snap : CliktCommand(
     override fun run() {
         fun processDirectory(root: Path): Tree {
             val entries = getFilePaths(root).map { path ->
-                val ktPath = path.toNioPath()
-                if (ktPath.isDirectory()) {
+                if (path.isDirectory) {
                     val subtree = processDirectory(path)
                     Database.store(subtree)
                     Entry(path.name, subtree.hash, isDirectory = true)
                 } else {
-                    val isExecutable = ktPath.isExecutable()
                     val data = readFile(path) ?: return@map null
                     val blob = Blob(data)
                     Database.store(blob)
-                    Entry(path.name, blob.hash, isExecutable)
+                    Entry(path.name, blob.hash, path.isExecutable)
                 }
             }.filterNotNull() // Remove any null entries
 

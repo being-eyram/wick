@@ -17,7 +17,6 @@ val HEAD_FILE_PATH = GIT_PATH.resolve("HEAD")
 
 val INDEX_FILE_PATH = GIT_PATH.resolve("index")
 
-val FILES_TO_IGNORE = listOf(".", "..", ".git")
 
 fun readFile(path: Path): String? {
     val result = runCatching {
@@ -43,13 +42,37 @@ fun writeFile(path: Path, data: ByteArray) {
 }
 
 //TODO: HANDLE ERRORS
-fun getFilePaths(root: Path) = FILE_SYSTEM.list(root).filter {
-    it.name !in FILES_TO_IGNORE
-}
+fun getFilePaths(root: Path) = FILE_SYSTEM
+    .list(root)
+    .filter { it.isNotGitSubDirectory }
+
 
 fun readHead() = readFile(HEAD_FILE_PATH)
-
 
 fun updateHead(commitHash: String) {
     writeFile(HEAD_FILE_PATH, commitHash)
 }
+
+val Path.isNotGitSubDirectory: Boolean
+    get() = this.segments.all { it != ".git" }
+
+val Path.isRegularFile: Boolean
+    get() = this.toNioPath().isRegularFile()
+
+val Path.isDirectory: Boolean
+    get() = this.toNioPath().isDirectory()
+
+val Path.isExecutable: Boolean
+    get() = this.toNioPath().isExecutable()
+
+fun Path.listFiles() = FILE_SYSTEM
+    .listRecursively(this)
+    .filter { it.isNotGitSubDirectory && it.isRegularFile }
+    .map { it.relativeFrom(this) }
+
+fun Path.relativeFrom(path: Path): Path {
+    return this.toNioPath()
+        .relativeTo(path.toNioPath())
+        .toOkioPath()
+}
+
